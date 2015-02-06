@@ -5,16 +5,17 @@
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <title>Kefir.js & select experiment</title>
-        <script src="../bower-packages/jquery/dist/jquery.js"></script>
-        <script src="../bower-packages/kefir/dist/kefir.js"></script>
-        <script src="../bower-packages/kefir-jquery/kefir-jquery.js"></script>
-        <script src="../bower-packages/coffee-script/extras/coffee-script.js"></script>
+        <script src="bower_components/underscore/underscore.js"></script>
+        <script src="bower_components/jquery/dist/jquery.js"></script>
+        <script src="bower_components/kefir/dist/kefir.js"></script>
+        <script src="bower_components/kefir-jquery/kefir-jquery.js"></script>
+        <script src="bower_components/coffee-script/extras/coffee-script.js"></script>
     </head>
     <body>
-
+    <form id="someForm">
       <label>
         chooseOption:
-        <select id="chooseOption">
+        <select id="chooseSomething" name="chooseSomething">
           <option value="1">1</option>
           <option value="2">2</option>
           <option value="3">3</option>
@@ -26,13 +27,52 @@
       </label>
       <br>
       <label>
-        <input type="checkbox" id="partial-render"> Checkbox
+        <input type="checkbox" id="checkSomething" name="checkSomething"> Checkbox
       </label>
 
-
-      <canvas id="canvas" width="500" height="300"></canvas>
+    </form>
 
       <script type="text/coffeescript">
+        KefirJQuery.init Kefir, $
+
+        class EventTracer
+
+          fieldNames: ["chooseSomething", "checkSomething"]
+
+          inputs: []
+          streams: []
+
+          form: do () ->
+            $("#someForm")
+
+          bindStreams: ->
+            _.each @.fieldNames, (name) =>
+              getFieldData = do (target = @, name) ->
+                () ->
+                  console.debug "getFieldData:::", name, event, target.inputs[name].val()
+                  obj = 
+                    name: name
+                    value: target.inputs[name].val()
+                  return obj
+
+              @.streams["change"] = @.inputs[name]
+                .asKefirStream("change", getFieldData)
+
+          constructor: ->
+            _.each @.fieldNames, (name) =>
+              console.debug "name:::", name
+              @.inputs[name] = @form.find("[name='" + name + "']")
+            , @
+
+            console.debug "@.inputs:::", @.inputs
+
+            @bindStreams()
+
+
+
+        tracer = new EventTracer()
+
+
 
 
         </script>
